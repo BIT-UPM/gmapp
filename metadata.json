@@ -1,0 +1,5 @@
+{
+  "name": "GMApp",
+  "description": "A real-time dashboard to monitor GPU utilization, memory, and temperature across multiple compute nodes in a cluster.",
+  "requestFramePermissions": []
+}

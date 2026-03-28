@@ -1,0 +1,3 @@
+# No external dependencies required.
+# The agent uses built-in Python libraries (urllib, subprocess, json, socket, time).
+# It relies on the `nvidia-smi` command-line tool being installed and accessible in the system PATH.
