@@ -16,6 +16,8 @@ async function startServer() {
     const report = req.body;
     nodesData[report.node_name] = {
       last_seen: Date.now() / 1000,
+      cpu_load: report.cpu_load || 0,
+      ram_usage: report.ram_usage || 0,
       gpus: report.gpus,
     };
     res.json({ status: "success" });
@@ -29,53 +31,13 @@ async function startServer() {
         node_name,
         is_online,
         last_seen: data.last_seen,
+        cpu_load: data.cpu_load,
+        ram_usage: data.ram_usage,
         gpus: data.gpus,
       };
     });
     res.json(result);
   });
-
-  // --- MOCK DATA GENERATOR FOR PREVIEW ---
-  // This simulates agents sending data to the server so the dashboard is populated
-  // const mockNodes = ["compute-node-01", "compute-node-02", "compute-node-03", "dgx-a100-01"];
-  
-  // setInterval(() => {
-  //   mockNodes.forEach((node, idx) => {
-  //     // Simulate node 3 going offline occasionally
-  //     if (node === "compute-node-03" && Math.random() > 0.8) return;
-      
-  //     const numGpus = node.includes("dgx") ? 8 : 4;
-  //     const gpus = Array.from({ length: numGpus }).map((_, i) => {
-  //       const isIdle = Math.random() > 0.6;
-  //       const memTotal = node.includes("dgx") ? 81920 : 24576;
-  //       const memUsed = isIdle ? Math.floor(Math.random() * 1000) : Math.floor(Math.random() * memTotal * 0.9) + 1000;
-  //       const util = isIdle ? Math.floor(Math.random() * 5) : Math.floor(Math.random() * 80) + 20;
-  //       const temp = isIdle ? Math.floor(Math.random() * 10) + 30 : Math.floor(Math.random() * 40) + 40;
-  //       const power = isIdle ? Math.floor(Math.random() * 20) + 10 : Math.floor(Math.random() * 200) + 100;
-  //       const users = isIdle ? [] : [
-  //         { username: "alice", memory: Math.floor(memUsed * 0.6) },
-  //         { username: "bob", memory: Math.floor(memUsed * 0.4) }
-  //       ];
-        
-  //       return {
-  //         index: i,
-  //         name: node.includes("dgx") ? "NVIDIA A100-SXM4-80GB" : "NVIDIA RTX 3090",
-  //         memory_total: memTotal,
-  //         memory_used: memUsed,
-  //         utilization: util,
-  //         temperature: temp,
-  //         power: power,
-  //         users: users
-  //       };
-  //     });
-
-  //     nodesData[node] = {
-  //       last_seen: Date.now() / 1000,
-  //       gpus
-  //     };
-  //   });
-  // }, 5000);
-  // // ---------------------------------------
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {

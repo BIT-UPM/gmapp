@@ -38,12 +38,16 @@ class GPUInfo(BaseModel):
 class NodeReport(BaseModel):
     node_name: str
     timestamp: float
+    cpu_load: float = 0.0
+    ram_usage: float = 0.0
     gpus: List[GPUInfo]
 
 @app.post("/api/report")
 async def report_gpu(report: NodeReport):
     nodes_data[report.node_name] = {
         "last_seen": time.time(),
+        "cpu_load": report.cpu_load,
+        "ram_usage": report.ram_usage,
         "gpus": [gpu.dict() for gpu in report.gpus]
     }
     return {"status": "success"}
@@ -59,6 +63,8 @@ async def get_nodes():
             "node_name": node_name,
             "is_online": is_online,
             "last_seen": data["last_seen"],
+            "cpu_load": data.get("cpu_load", 0.0),
+            "ram_usage": data.get("ram_usage", 0.0),
             "gpus": data["gpus"]
         })
     return result

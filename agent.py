@@ -9,6 +9,32 @@ SERVER_URL = "http://10.5.38.35:8000/api/report"
 NODE_NAME = socket.gethostname()
 INTERVAL = 5
 
+def get_node_metrics():
+    try:
+        # CPU Load (1 min average)
+        with open('/proc/loadavg', 'r') as f:
+            cpu_load = float(f.read().split()[0])
+        
+        # RAM Usage
+        with open('/proc/meminfo', 'r') as f:
+            lines = f.readlines()
+            mem_total = 0
+            mem_available = 0
+            for line in lines:
+                if line.startswith('MemTotal:'):
+                    mem_total = int(line.split()[1])
+                elif line.startswith('MemAvailable:'):
+                    mem_available = int(line.split()[1])
+            
+            ram_usage_pct = 0
+            if mem_total > 0:
+                ram_usage_pct = round((1 - (mem_available / mem_total)) * 100, 1)
+        
+        return cpu_load, ram_usage_pct
+    except Exception as e:
+        print(f"Error getting node metrics: {e}")
+        return 0.0, 0.0
+
 def get_username(pid):
     try:
         # Get the real user of the process
@@ -98,9 +124,12 @@ def main():
     print(f"Starting GPU agent on {NODE_NAME}...")
     while True:
         gpus = get_gpu_info()
+        cpu_load, ram_usage = get_node_metrics()
         payload = {
             "node_name": NODE_NAME,
             "timestamp": time.time(),
+            "cpu_load": cpu_load,
+            "ram_usage": ram_usage,
             "gpus": gpus
         }
         

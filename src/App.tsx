@@ -22,6 +22,8 @@ interface NodeData {
   node_name: string;
   is_online: boolean;
   last_seen: number;
+  cpu_load: number;
+  ram_usage: number;
   gpus: GPUInfo[];
 }
 
@@ -53,7 +55,7 @@ export default function App() {
     };
 
     fetchNodes();
-    const interval = setInterval(fetchNodes, 10000); // Auto-refresh every 10 seconds
+    const interval = setInterval(fetchNodes, 5000); // Auto-refresh every 5 seconds
     return () => clearInterval(interval);
   }, []);
 
@@ -131,14 +133,28 @@ export default function App() {
                     )}
                     <h3 className="text-lg font-medium text-slate-900 dark:text-white">{node.node_name}</h3>
                   </div>
-                  <span className={cn(
-                    "text-xs font-medium px-2.5 py-1 rounded-full border",
-                    node.is_online 
-                      ? "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20" 
-                      : "bg-red-100 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20"
-                  )}>
-                    {node.is_online ? "Online" : "Offline"}
-                  </span>
+                  <div className="flex items-center gap-4">
+                    {node.is_online && (
+                      <div className="hidden sm:flex items-center gap-4 text-xs font-medium text-slate-500 dark:text-slate-400 mr-2">
+                        <div className="flex items-center gap-1.5" title="CPU Load (1m avg)">
+                          <Activity className="w-3.5 h-3.5 text-indigo-500" />
+                          <span>CPU load: {node.cpu_load.toFixed(1)}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5" title="RAM Usage">
+                          <div className="w-3.5 h-3.5 rounded-sm border border-indigo-500/50 flex items-center justify-center text-[8px]">R</div>
+                          <span>RAM: {node.ram_usage}%</span>
+                        </div>
+                      </div>
+                    )}
+                    <span className={cn(
+                      "text-xs font-medium px-2.5 py-1 rounded-full border",
+                      node.is_online 
+                        ? "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20" 
+                        : "bg-red-100 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20"
+                    )}>
+                      {node.is_online ? "Online" : "Offline"}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="p-5 space-y-6">
