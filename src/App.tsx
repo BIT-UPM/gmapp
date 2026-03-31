@@ -41,6 +41,8 @@ export default function App() {
   }, [isDarkMode]);
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
     const fetchNodes = async () => {
       try {
         const res = await fetch('/api/nodes');
@@ -51,12 +53,17 @@ export default function App() {
         setLastUpdated(new Date());
       } catch (error) {
         console.error("Failed to fetch node data:", error);
+      } finally {
+        // Synchronize frontend refresh to exact 5-second boundaries + 500ms offset
+        // This ensures it fetches right after the agents push their synchronized updates.
+        const now = Date.now();
+        const delay = 5000 - (now % 5000) + 500;
+        timeoutId = setTimeout(fetchNodes, delay);
       }
     };
 
     fetchNodes();
-    const interval = setInterval(fetchNodes, 5000); // Auto-refresh every 5 seconds
-    return () => clearInterval(interval);
+    return () => clearTimeout(timeoutId);
   }, []);
 
   const getStatusColor = (utilization: number) => {
@@ -135,29 +142,29 @@ export default function App() {
                   </div>
                   <div className="flex items-center gap-4">
                     {node.is_online && (
-                      <div className="hidden sm:flex items-center gap-4 text-xs font-medium text-slate-500 dark:text-slate-400 mr-2">
+                      <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500 dark:text-slate-400 mr-2">
                         <div className="flex items-center gap-1.5" title="CPU Load (1m avg)">
                           <Activity className="w-3.5 h-3.5 text-indigo-500" />
-                          <span>CPU load: {node.cpu_load.toFixed(1)}</span>
+                          <span>CPU: {node.cpu_load?.toFixed(1) || '0.0'}</span>
                         </div>
                         <div className="flex items-center gap-1.5" title="RAM Usage">
                           <div className="w-3.5 h-3.5 rounded-sm border border-indigo-500/50 flex items-center justify-center text-[8px]">R</div>
-                          <span>RAM: {node.ram_usage}%</span>
+                          <span>RAM: {node.ram_usage || 0}%</span>
                         </div>
                       </div>
                     )}
                     <span className={cn(
                       "text-xs font-medium px-2.5 py-1 rounded-full border",
-                      node.is_online 
-                        ? "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20" 
-                        : "bg-red-100 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20"
-                    )}>
-                      {node.is_online ? "Online" : "Offline"}
-                    </span>
-                  </div>
+                    node.is_online 
+                      ? "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20" 
+                      : "bg-red-100 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20"
+                  )}>
+                    {node.is_online ? "Online" : "Offline"}
+                  </span>
                 </div>
+              </div>
 
-                <div className="p-5 space-y-6">
+              <div className="p-5 space-y-6">
                   {!node.is_online && (
                     <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 p-3 rounded-md border border-red-100 dark:border-red-500/20">
                       Node hasn't reported in over 30 seconds. Last seen: {new Date(node.last_seen * 1000).toLocaleTimeString()}

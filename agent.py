@@ -137,13 +137,16 @@ def main():
             req = urllib.request.Request(SERVER_URL, method="POST")
             req.add_header("Content-Type", "application/json")
             data = json.dumps(payload).encode("utf-8")
-            with urllib.request.urlopen(req, data=data, timeout=5) as response:
+            with urllib.request.urlopen(req, data=data, timeout=3) as response:
                 if response.status != 200:
                     print(f"Failed to report: {response.status}")
         except Exception as e:
             print(f"Error sending report: {e}")
             
-        time.sleep(INTERVAL)
+        # Synchronize to exact 5-second boundaries so all nodes report simultaneously
+        now = time.time()
+        sleep_time = INTERVAL - (now % INTERVAL)
+        time.sleep(sleep_time)
 
 if __name__ == "__main__":
     main()
